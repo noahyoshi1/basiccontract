@@ -8,6 +8,6 @@ WORKDIR /app
 
 RUN npm install
 
-RUN truffle compile
+RUN truffle compile && truffle migrate
 
 CMD [truffle", "deploy"]
