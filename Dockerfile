@@ -1,4 +1,13 @@
 FROM node:14-alpine
-WORKDIR /app
+
 RUN npm install -g truffle
-COPY . .
+
+COPY . /app
+
+WORKDIR /app
+
+RUN npm install
+
+RUN truffle compile
+
+CMD [truffle", "deploy"]
