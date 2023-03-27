@@ -1,4 +1,4 @@
 FROM node:14-alpine
-WORKDIR /contracts
+WORKDIR /app
 RUN npm install -g truffle
-COPY ..
+COPY . .
