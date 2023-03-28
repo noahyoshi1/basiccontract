@@ -1,29 +1,36 @@
-import { ethers } from 'ethers'
+import Web3 from 'web3'
+import { Contract, ContractSendMethod, Options } from 'web3-eth-contract'
 
 /**
  * Deploy the given contract
  * @param {string} contractName name of the contract to deploy
  * @param {Array<any>} args list of constructor' parameters
- * @param {Number} accountIndex account index from the exposed account
- * @return {Contract} deployed contract
+ * @param {string} from account used to send the transaction
+ * @param {number} gas gas limit
+ * @return {Options} deployed contract
  */
-export const deploy = async (contractName: string, args: Array<any>, accountIndex?: number): Promise<ethers.Contract> => {    
+export const deploy = async (contractName: string, args: Array<any>, from?: string, gas?: number): Promise<Options> => {
 
+    const web3 = new Web3(web3Provider)
     console.log(`deploying ${contractName}`)
     // Note that the script needs the ABI which is generated from the compilation artifact.
     // Make sure contract is compiled and artifacts are generated
-    const artifactsPath = `browser/contracts/artifacts/${contractName}.json` // Change this for different path
+    const artifactsPath = `browser/contracts/artifacts/${contractName}.json`
 
     const metadata = JSON.parse(await remix.call('fileManager', 'getFile', artifactsPath))
-    // 'web3Provider' is a remix global variable object
-    
-    const signer = (new ethers.providers.Web3Provider(web3Provider)).getSigner(accountIndex)
 
-    const factory = new ethers.ContractFactory(metadata.abi, metadata.data.bytecode.object, signer)
+    const accounts = await web3.eth.getAccounts()
 
-    const contract = await factory.deploy(...args)   
+    const contract: Contract  = new web3.eth.Contract(metadata.abi)
 
-    // The contract is NOT deployed yet; we must wait until it is mined
-    await contract.deployed()
-    return contract
+    const contractSend: ContractSendMethod = contract.deploy({
+        data: metadata.data.bytecode.object,
+        arguments: args
+    })
+
+    const newContractInstance = await contractSend.send({
+        from: from || accounts[0],
+        gas: gas || 1500000
+    })
+    return newContractInstance.options    
 }
